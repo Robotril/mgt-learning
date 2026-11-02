@@ -1,0 +1,16 @@
+name: Site check (temporary)
+on:
+  push:
+    paths: ['.github/workflows/site-check.yml']
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "== cert"; echo | openssl s_client -connect dealsaid.org:443 -servername dealsaid.org 2>/dev/null | openssl x509 -noout -subject -issuer -dates -ext subjectAltName || true
+          for u in https://dealsaid.org/ https://www.dealsaid.org/ http://dealsaid.org/ https://dealsaid.org/learn/index.html https://dealsaid.org/ocean-motion.js https://dealsaid.org/favicon-round.png https://dealsaid.org/learn/js/motion.js https://dealsaid.org/learn/img/robot-round.png; do
+            echo "== $u"; curl -s -o /tmp/b -w "status=%{http_code} final=%{url_effective} redirects=%{num_redirects} bytes=%{size_download} ssl_verify=%{ssl_verify_result}\n" -L -m 20 "$u" || echo "FAILED"
+          done
+          echo "== homepage markers"; curl -sL -m 20 https://dealsaid.org/ | grep -o 'ocean.js?v=[0-9]*\|favicon-round.png\|learn/index.html' | sort | uniq -c
+          echo "== learn markers"; curl -sL -m 20 https://dealsaid.org/learn/index.html | grep -o 'robot-round.png\|js/motion.js\|css/motion.css' | sort | uniq -c
+          echo "== ocean.js has fish facts"; curl -sL -m 20 'https://dealsaid.org/ocean.js?v=4' | grep -c "shark sanctuary"
