@@ -1,0 +1,18 @@
+name: DNS check (temporary)
+on:
+  push:
+    paths: ['.github/workflows/dns-check.yml']
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          q() { for s in 8.8.8.8 1.1.1.1; do echo "RESULT $1 $2 @$s: $(dig +short $1 $2 @$s | tr '\n' ' ')"; done; }
+          q dealsaid.org A
+          q www.dealsaid.org CNAME
+          q dealsaid.org TXT
+          q _dmarc.dealsaid.org TXT
+          q _dmrac.dealsaid.org TXT
+          q _github-pages-challenge-Robotril.dealsaid.org TXT
+          q dealsaid.org CAA
+          echo "RESULT DNSSEC: $(dig +dnssec dealsaid.org A @1.1.1.1 | grep -c RRSIG) signatures, ad-flag: $(dig +dnssec dealsaid.org A @1.1.1.1 | grep -o 'flags:[^;]*' | head -1)"
