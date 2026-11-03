@@ -1,0 +1,15 @@
+name: Site check (temporary)
+on:
+  push:
+    paths: ['.github/workflows/site-check.yml']
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          sleep 30
+          for u in https://dealsaid.org/ https://dealsaid.org/learn/ https://dealsaid.org/privacy.html https://dealsaid.org/accessibility.html https://dealsaid.org/.well-known/security.txt https://dealsaid.org/frame-guard.js https://dealsaid.org/fonts/dive.css https://dealsaid.org/sitemap.xml http://dealsaid.org/; do
+            curl -s -o /dev/null -L -m 20 -w "RESULT %{http_code} %{url_effective}\n" "$u"
+          done
+          curl -sL -m 20 https://dealsaid.org/ | grep -o "<title>[^<]*" | sed 's/^/RESULT /'
+          curl -sI -m 20 https://dealsaid.org/ | grep -i "^strict-transport\|^server" | sed 's/^/RESULT /'
